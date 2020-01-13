@@ -208,6 +208,8 @@ SET(BulletExampleBrowser_SRCS
 	../RobotSimulator/b3RobotSimulatorClientAPI.h
 	../BasicDemo/BasicExample.cpp
 	../BasicDemo/BasicExample.h
+	../Tensegrity/Tensegrity.cpp
+	../Tensegrity/Tensegrity.h
 	../InverseDynamics/InverseDynamicsExample.cpp
 	../InverseDynamics/InverseDynamicsExample.h
 	../InverseKinematics/InverseKinematicsExample.cpp

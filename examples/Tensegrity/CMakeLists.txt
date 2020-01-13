@@ -10,13 +10,13 @@ LINK_LIBRARIES(
 
 IF (WIN32)
 	ADD_EXECUTABLE(App_Tensegrity
-		BasicExample.cpp
+		Tensegrity.cpp
 		main.cpp
 		${BULLET_PHYSICS_SOURCE_DIR}/build3/bullet.rc
 	)
 ELSE()
 	ADD_EXECUTABLE(App_Tensegrity
-		BasicExample.cpp
+		Tensegrity.cpp
 		main.cpp
 	)
 ENDIF()
@@ -35,7 +35,7 @@ ENDIF(INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)
 
 
 #################
-# Standalone BasicExampleGui using OpenGL (but not the example browser)
+# Standalone TensegrityGui using OpenGL (but not the example browser)
 
 
 INCLUDE_DIRECTORIES(
@@ -47,7 +47,7 @@ INCLUDE_DIRECTORIES(
 
 
 SET(AppTensegrityGui_SRCS
-	BasicExample.cpp
+	Tensegrity.cpp
         ${BULLET_PHYSICS_SOURCE_DIR}/build3/bullet.rc
 	../StandaloneMain/main_opengl_single_example.cpp
         ../ExampleBrowser/OpenGLGuiHelper.cpp

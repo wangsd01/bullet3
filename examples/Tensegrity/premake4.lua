@@ -44,7 +44,7 @@ links {
 language "C++"
 
 files {
-        "BasicExample.cpp",
+        "Tensegrity.cpp",
         "*.h",
         "../StandaloneMain/main_opengl_single_example.cpp",
 	"../ExampleBrowser/OpenGLGuiHelper.cpp",
@@ -86,7 +86,7 @@ links {
 language "C++"
 
 files {
-        "BasicExample.cpp",
+        "Tensegrity.cpp",
         "*.h",
         "../StandaloneMain/main_sw_tinyrenderer_single_example.cpp",
 	"../ExampleBrowser/OpenGLGuiHelper.cpp",
@@ -129,7 +129,7 @@ links {
 language "C++"
 
 files {
-        "BasicExample.cpp",
+        "Tensegrity.cpp",
         "*.h",
         "../StandaloneMain/main_tinyrenderer_single_example.cpp",
 	"../ExampleBrowser/CollisionShape2TriangleMesh.cpp",
@@ -176,7 +176,7 @@ links {
 language "C++"
 
 files {
-        "BasicExample.cpp",
+        "Tensegrity.cpp",
         "*.h",
         "../StandaloneMain/hellovr_opengl_main.cpp",
 	"../CommonInterfaces/*",

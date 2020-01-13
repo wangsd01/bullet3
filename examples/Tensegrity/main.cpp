@@ -13,7 +13,7 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "BasicExample.h"
+#include "Tensegrity.h"
 
 #include "../CommonInterfaces/CommonExampleInterface.h"
 #include "../CommonInterfaces/CommonGUIHelperInterface.h"
@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 	DummyGUIHelper noGfx;
 
 	CommonExampleOptions options(&noGfx);
-	CommonExampleInterface* example = BasicExampleCreateFunc(options);
+	CommonExampleInterface* example = TensegrityCreateFunc(options);
 
 	example->initPhysics();
 	example->stepSimulation(1.f / 60.f);

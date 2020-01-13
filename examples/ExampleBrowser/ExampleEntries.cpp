@@ -14,6 +14,7 @@
 #include "../ForkLift/ForkLiftDemo.h"
 #include "../MultiThreadedDemo/MultiThreadedDemo.h"
 #include "../BasicDemo/BasicExample.h"
+#include "../Tensegrity/Tensegrity.h"
 #include "../Planar2D/Planar2D.h"
 #include "../Benchmarks/BenchmarkDemo.h"
 #include "../Importers/ImportObjDemo/ImportObjExample.h"
@@ -121,6 +122,9 @@ struct ExampleEntry
 
 static ExampleEntry gDefaultExamples[] =
 	{
+		ExampleEntry(0, "Tensegrity"),
+		ExampleEntry(1, "Single Rod", "Create single rod contact example", TensegrityCreateFunc),
+
 		ExampleEntry(0, "API"),
 
 		ExampleEntry(1, "Basic Example", "Create some rigid bodies using box collision shapes. This is a good example to familiarize with the basic initialization of Bullet. The Basic Example can also be compiled without graphical user interface, as a console application. Press W for wireframe, A to show AABBs, I to suspend/restart physics simulation. Press D to toggle auto-deactivation of the simulation. ", BasicExampleCreateFunc),
