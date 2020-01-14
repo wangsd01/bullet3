@@ -55,7 +55,7 @@ void Tensegrity::initPhysics()
 	if (m_dynamicsWorld->getDebugDrawer())
 		m_dynamicsWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe + btIDebugDraw::DBG_DrawContactPoints);
 
-	///create a few basic rigid bodies
+	///create a few basic rigid bodies, i.e. create ground. which contains to setup ground collision shape, groundTransform and mass.
 	btBoxShape* groundShape = createBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
 
 	//groundShape->initializePolyhedralFeatures();
@@ -73,42 +73,74 @@ void Tensegrity::initPhysics()
 	}
 
 	{
-		//create a few dynamic rigidbodies
+		//create a few dynamic rigidbodies, i.e. boxes. Here reuse the collision shape
 		// Re-using the same collision is better for memory usage and performance
 
-		btBoxShape* colShape = createBoxShape(btVector3(.1, .1, .1));
-
-		//btCollisionShape* colShape = new btSphereShape(btScalar(1.));
-		m_collisionShapes.push_back(colShape);
-
-		/// Create Dynamic Objects
+		btCollisionShape* cylShape = new btCylinderShape(btVector3(0.25, 0.5, 0.25)); // radius, height, not used.
+		m_collisionShapes.push_back(cylShape);
 		btTransform startTransform;
 		startTransform.setIdentity();
-
+		startTransform.setOrigin(btVector3(btScalar(0), btScalar(1), btScalar(0)));
 		btScalar mass(1.f);
 
-		//rigidbody is dynamic if and only if mass is non zero, otherwise static
-		bool isDynamic = (mass != 0.f);
+		btRigidBody* body = createRigidBody(mass, startTransform, cylShape);
+		body->setRollingFriction(0.0);
+		body->setSpinningFriction(0.0);
+		body->setFriction(0.0);
+		// body->setRollingFriction(0.03);
+		// body->setSpinningFriction(0.03);
+		// body->setFriction(1);
+		// body->setAnisotropicFriction(cylShape->getAnisotropicRollingFrictionDirection(), btCollisionObject::CF_ANISOTROPIC_ROLLING_FRICTION);
 
-		btVector3 localInertia(0, 0, 0);
-		if (isDynamic)
-			colShape->calculateLocalInertia(mass, localInertia);
 
-		for (int k = 0; k < ARRAY_SIZE_Y; k++)
-		{
-			for (int i = 0; i < ARRAY_SIZE_X; i++)
-			{
-				for (int j = 0; j < ARRAY_SIZE_Z; j++)
-				{
-					startTransform.setOrigin(btVector3(
-						btScalar(0.2 * i),
-						btScalar(2 + .2 * k),
-						btScalar(0.2 * j)));
 
-					createRigidBody(mass, startTransform, colShape);
-				}
-			}
-		}
+		// bool isDynamic = (mass != 0.f);
+		// btVector3 localInertia(0, 0, 0);
+		// if (isDynamic)
+		// 	cylShape->calculateLocalInertia(mass, localInertia);
+		// btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, 0, cylShape, localInertia);
+		// rbInfo.m_startWorldTransform = startTransform;
+		// btRigidBody* body = new btRigidBody(rbInfo);
+		// body->setRollingFriction(0.03);
+		// body->setSpinningFriction(0.03);
+		// body->setFriction(1);
+		// body->setAnisotropicFriction(cylShape->getAnisotropicRollingFrictionDirection(), btCollisionObject::CF_ANISOTROPIC_ROLLING_FRICTION);
+
+		// m_dynamicsWorld->addRigidBody(body);
+
+		// btBoxShape* colShape = createBoxShape(btVector3(.1, .1, .1));
+
+		// //btCollisionShape* colShape = new btSphereShape(btScalar(1.));
+		// m_collisionShapes.push_back(colShape);
+
+		// /// Create Dynamic Objects
+		// btTransform startTransform;
+		// startTransform.setIdentity();
+
+		// btScalar mass(1.f);
+
+		// //rigidbody is dynamic if and only if mass is non zero, otherwise static
+		// bool isDynamic = (mass != 0.f);
+
+		// btVector3 localInertia(0, 0, 0);
+		// if (isDynamic)
+		// 	colShape->calculateLocalInertia(mass, localInertia);
+
+		// for (int k = 0; k < ARRAY_SIZE_Y; k++)
+		// {
+		// 	for (int i = 0; i < ARRAY_SIZE_X; i++)
+		// 	{
+		// 		for (int j = 0; j < ARRAY_SIZE_Z; j++)
+		// 		{
+		// 			startTransform.setOrigin(btVector3(
+		// 				btScalar(0.2 * i),
+		// 				btScalar(2 + .2 * k),
+		// 				btScalar(0.2 * j)));
+
+		// 			createRigidBody(mass, startTransform, colShape);
+		// 		}
+		// 	}
+		// }
 	}
 
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
