@@ -24,6 +24,7 @@ subject to the following restrictions:
 #include "LinearMath/btAlignedObjectArray.h"
 
 #include "../CommonInterfaces/CommonRigidBodyBase.h"
+#include "../Importers/ImportMJCFDemo/ImportMJCFSetup.h"
 
 struct Tensegrity : public CommonRigidBodyBase
 {
@@ -87,6 +88,36 @@ void Tensegrity::initPhysics()
 		body->setRollingFriction(0.0);
 		body->setSpinningFriction(0.0);
 		body->setFriction(0.0);
+
+		//////////////////////////
+		//compute the local 'fromto' transform
+		// btVector3 f = col->m_geometry.m_capsuleFrom;
+		// 				btVector3 t = col->m_geometry.m_capsuleTo;
+
+		// 				//compute the local 'fromto' transform
+		// 				btVector3 localPosition = btScalar(0.5) * (t + f);
+		// 				btQuaternion localOrn;
+		// 				localOrn = btQuaternion::getIdentity();
+
+		// 				btVector3 diff = t - f;
+		// 				btScalar lenSqr = diff.length2();
+		// 				btScalar height = 0.f;
+
+		// 				if (lenSqr > SIMD_EPSILON)
+		// 				{
+		// 					height = btSqrt(lenSqr);
+		// 					btVector3 ax = diff / height;
+
+		// 					btVector3 zAxis(0, 0, 1);
+		// 					localOrn = shortestArcQuat(zAxis, ax);
+		// 				}
+		// 				btCylinderShapeZ* cyl = new btCylinderShapeZ(btVector3(col->m_geometry.m_capsuleRadius, col->m_geometry.m_capsuleRadius, btScalar(0.5) * height));
+
+		// 				btCompoundShape* compound = new btCompoundShape();
+		// 				btTransform localTransform(localOrn, localPosition);
+		// 				compound->addChildShape(localTransform, cyl);
+		// 				childShape = compound;
+		////////////////////////////
 		// body->setRollingFriction(0.03);
 		// body->setSpinningFriction(0.03);
 		// body->setFriction(1);
@@ -151,8 +182,9 @@ void Tensegrity::renderScene()
 	CommonRigidBodyBase::renderScene();
 }
 
-CommonExampleInterface* TensegrityCreateFunc(CommonExampleOptions& options)
+class CommonExampleInterface* TensegrityCreateFunc(CommonExampleOptions& options)
 {
+	// return new ImportMJCFSetup(options.m_guiHelper, options.m_option, options.m_fileName);
 	return new Tensegrity(options.m_guiHelper);
 }
 

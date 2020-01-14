@@ -17,6 +17,7 @@
 #include "BulletMJCFImporter.h"
 #include "../ImportURDFDemo/URDF2Bullet.h"
 
+
 class ImportMJCFSetup : public CommonMultiBodyBase
 {
 	char m_fileName[1024];
@@ -112,27 +113,28 @@ ImportMJCFSetup::ImportMJCFSetup(struct GUIHelperInterface* helper, int option, 
 
 		if (gMCFJFileNameArray.size() == 0)
 		{
-			gMCFJFileNameArray.push_back("mjcf/humanoid.xml");
+			// gMCFJFileNameArray.push_back("mjcf/humanoid.xml");
 
-			gMCFJFileNameArray.push_back("MPL/MPL.xml");
+			// gMCFJFileNameArray.push_back("MPL/MPL.xml");
 
-			gMCFJFileNameArray.push_back("mjcf/inverted_pendulum.xml");
-			gMCFJFileNameArray.push_back("mjcf/ant.xml");
-			gMCFJFileNameArray.push_back("mjcf/hello_mjcf.xml");
+			// gMCFJFileNameArray.push_back("mjcf/inverted_pendulum.xml");
+			// gMCFJFileNameArray.push_back("mjcf/ant.xml");
+			// gMCFJFileNameArray.push_back("mjcf/hello_mjcf.xml");
 
-			gMCFJFileNameArray.push_back("mjcf/cylinder.xml");
-			gMCFJFileNameArray.push_back("mjcf/cylinder_fromtoX.xml");
-			gMCFJFileNameArray.push_back("mjcf/cylinder_fromtoY.xml");
-			gMCFJFileNameArray.push_back("mjcf/cylinder_fromtoZ.xml");
+			// gMCFJFileNameArray.push_back("mjcf/cylinder.xml");
+			// gMCFJFileNameArray.push_back("mjcf/cylinder_fromtoX.xml");
+			// gMCFJFileNameArray.push_back("mjcf/cylinder_fromtoY.xml");
+			// gMCFJFileNameArray.push_back("mjcf/cylinder_fromtoZ.xml");
 
-			gMCFJFileNameArray.push_back("mjcf/capsule.xml");
-			gMCFJFileNameArray.push_back("mjcf/capsule_fromtoX.xml");
-			gMCFJFileNameArray.push_back("mjcf/capsule_fromtoY.xml");
-			gMCFJFileNameArray.push_back("mjcf/capsule_fromtoZ.xml");
+			// gMCFJFileNameArray.push_back("mjcf/capsule.xml");
+			// gMCFJFileNameArray.push_back("mjcf/capsule_fromtoX.xml");
+			// gMCFJFileNameArray.push_back("mjcf/capsule_fromtoY.xml");
+			// gMCFJFileNameArray.push_back("mjcf/capsule_fromtoZ.xml");
 
-			gMCFJFileNameArray.push_back("mjcf/hopper.xml");
-			gMCFJFileNameArray.push_back("mjcf/swimmer.xml");
-			gMCFJFileNameArray.push_back("mjcf/reacher.xml");
+			// gMCFJFileNameArray.push_back("mjcf/hopper.xml");
+			// gMCFJFileNameArray.push_back("mjcf/swimmer.xml");
+			// gMCFJFileNameArray.push_back("mjcf/reacher.xml");
+			gMCFJFileNameArray.push_back("mjcf/tt_ntrt.xml");
 		}
 
 		int numFileNames = gMCFJFileNameArray.size();
