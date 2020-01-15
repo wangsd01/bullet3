@@ -35,6 +35,7 @@ struct Tensegrity : public CommonRigidBodyBase
 	virtual ~Tensegrity() {}
 	virtual void initPhysics();
 	virtual void renderScene();
+	btRigidBody* createCylinderByFromTo(btVector3 cylinderFrom, btVector3 cylinderTo, btScalar cylinderRadius);
 	void resetCamera()
 	{
 		float dist = 4;
@@ -44,6 +45,46 @@ struct Tensegrity : public CommonRigidBodyBase
 		m_guiHelper->resetCamera(dist, yaw, pitch, targetPos[0], targetPos[1], targetPos[2]);
 	}
 };
+
+btRigidBody* Tensegrity::createCylinderByFromTo(btVector3 cylinderFrom, btVector3 cylinderTo, btScalar cylinderRadius)
+{
+//////////////////////////
+	btScalar mass(1.f);
+	//compute the local 'fromto' transform
+	btVector3 f = cylinderFrom;
+	btVector3 t = cylinderTo;
+
+	//compute the local 'fromto' transform
+	btVector3 localPosition = btScalar(0.5) * (t + f);
+	btQuaternion localOrn;
+	localOrn = btQuaternion::getIdentity();
+
+	btVector3 diff = t - f;
+	btScalar lenSqr = diff.length2();
+	btScalar height = 0.f;
+
+	if (lenSqr > SIMD_EPSILON)
+	{
+		height = btSqrt(lenSqr);
+		btVector3 ax = diff / height;
+
+		btVector3 zAxis(0, 0, 1);
+		localOrn = shortestArcQuat(zAxis, ax);
+	}
+	btCylinderShapeZ* cylShape = new btCylinderShapeZ(btVector3(cylinderRadius, cylinderRadius, btScalar(0.5) * height));
+
+	btTransform localTransform(localOrn, localPosition);
+	btRigidBody* body = createRigidBody(mass, localTransform, cylShape);
+	body->setRollingFriction(0.0);
+	body->setSpinningFriction(0.0);
+	body->setFriction(0.0);
+	return body;
+	// btCompoundShape* compound = new btCompoundShape();
+	// btTransform localTransform(localOrn, localPosition);
+	// compound->addChildShape(localTransform, cyl);
+	// return compound;
+////////////////////////////
+}
 
 void Tensegrity::initPhysics()
 {
@@ -89,35 +130,9 @@ void Tensegrity::initPhysics()
 		body->setSpinningFriction(0.0);
 		body->setFriction(0.0);
 
-		//////////////////////////
-		//compute the local 'fromto' transform
-		// btVector3 f = col->m_geometry.m_capsuleFrom;
-		// 				btVector3 t = col->m_geometry.m_capsuleTo;
+		btRigidBody* cylFromTo = createCylinderByFromTo(btVector3(0, 5, 0), btVector3(0, 6, 1), btScalar(0.1));
 
-		// 				//compute the local 'fromto' transform
-		// 				btVector3 localPosition = btScalar(0.5) * (t + f);
-		// 				btQuaternion localOrn;
-		// 				localOrn = btQuaternion::getIdentity();
-
-		// 				btVector3 diff = t - f;
-		// 				btScalar lenSqr = diff.length2();
-		// 				btScalar height = 0.f;
-
-		// 				if (lenSqr > SIMD_EPSILON)
-		// 				{
-		// 					height = btSqrt(lenSqr);
-		// 					btVector3 ax = diff / height;
-
-		// 					btVector3 zAxis(0, 0, 1);
-		// 					localOrn = shortestArcQuat(zAxis, ax);
-		// 				}
-		// 				btCylinderShapeZ* cyl = new btCylinderShapeZ(btVector3(col->m_geometry.m_capsuleRadius, col->m_geometry.m_capsuleRadius, btScalar(0.5) * height));
-
-		// 				btCompoundShape* compound = new btCompoundShape();
-		// 				btTransform localTransform(localOrn, localPosition);
-		// 				compound->addChildShape(localTransform, cyl);
-		// 				childShape = compound;
-		////////////////////////////
+		
 		// body->setRollingFriction(0.03);
 		// body->setSpinningFriction(0.03);
 		// body->setFriction(1);
