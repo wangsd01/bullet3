@@ -26,6 +26,14 @@ subject to the following restrictions:
 #include "../CommonInterfaces/CommonRigidBodyBase.h"
 #include "../Importers/ImportMJCFDemo/ImportMJCFSetup.h"
 
+#include "BulletSoftBody/btSoftBodyHelpers.h"
+#include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
+#include "BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h"
+
+const int maxProxies = 32766;
+
+void tensegrityPickingPreTickCallback(btDynamicsWorld* world, btScalar timeStep);
+
 struct Tensegrity : public CommonRigidBodyBase
 {
 	Tensegrity(struct GUIHelperInterface* helper)
@@ -36,6 +44,21 @@ struct Tensegrity : public CommonRigidBodyBase
 	virtual void initPhysics();
 	virtual void renderScene();
 	btRigidBody* createCylinderByFromTo(btVector3 cylinderFrom, btVector3 cylinderTo, btScalar cylinderRadius);
+	void createEmptySoftRigidDynamicsWorld();
+	btSoftBodyWorldInfo m_softBodyWorldInfo;
+
+	bool m_autocam;
+	bool m_cutting;
+	bool m_raycast;
+	btScalar m_animtime;
+	btClock m_clock;
+	int m_lastmousepos[2];
+	btVector3 m_impact;
+	btSoftBody::sRayCast m_results;
+	btSoftBody::Node* m_node;
+	btVector3 m_goal;
+	bool m_drag;
+
 	void resetCamera()
 	{
 		float dist = 4;
@@ -43,6 +66,18 @@ struct Tensegrity : public CommonRigidBodyBase
 		float yaw = 52;
 		float targetPos[3] = {0, 0, 0};
 		m_guiHelper->resetCamera(dist, yaw, pitch, targetPos[0], targetPos[1], targetPos[2]);
+	}
+
+	virtual btSoftRigidDynamicsWorld* getSoftDynamicsWorld()
+	{
+		///just make it a btSoftRigidDynamicsWorld please
+		///or we will add type checking
+		return (btSoftRigidDynamicsWorld*)m_dynamicsWorld;
+	}
+
+	GUIHelperInterface* getGUIHelper()
+	{
+		return m_guiHelper;
 	}
 };
 
@@ -54,7 +89,6 @@ btRigidBody* Tensegrity::createCylinderByFromTo(btVector3 cylinderFrom, btVector
 	btVector3 f = cylinderFrom;
 	btVector3 t = cylinderTo;
 
-	//compute the local 'fromto' transform
 	btVector3 localPosition = btScalar(0.5) * (t + f);
 	btQuaternion localOrn;
 	localOrn = btQuaternion::getIdentity();
@@ -86,11 +120,80 @@ btRigidBody* Tensegrity::createCylinderByFromTo(btVector3 cylinderFrom, btVector
 ////////////////////////////
 }
 
+void Tensegrity::createEmptySoftRigidDynamicsWorld()
+{
+	m_dispatcher = 0;
+
+	///register some softbody collision algorithms on top of the default btDefaultCollisionConfiguration
+	m_collisionConfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
+
+	m_dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
+	m_softBodyWorldInfo.m_dispatcher = m_dispatcher;
+
+	////////////////////////////
+	///Register softbody versus softbody collision algorithm
+
+	///Register softbody versus rigidbody collision algorithm
+
+	////////////////////////////
+
+	btVector3 worldAabbMin(-1000, -1000, -1000);
+	btVector3 worldAabbMax(1000, 1000, 1000);
+
+	m_broadphase = new btAxisSweep3(worldAabbMin, worldAabbMax, maxProxies);
+
+	m_softBodyWorldInfo.m_broadphase = m_broadphase;
+
+	btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver();
+
+	m_solver = solver;
+
+	btSoftBodySolver* softBodySolver = 0;
+#ifdef USE_AMD_OPENCL
+
+	static bool once = true;
+	if (once)
+	{
+		once = false;
+		initCL(0, 0);
+	}
+
+	if (g_openCLSIMDSolver)
+		delete g_openCLSIMDSolver;
+	if (g_softBodyOutput)
+		delete g_softBodyOutput;
+
+	if (1)
+	{
+		g_openCLSIMDSolver = new btOpenCLSoftBodySolverSIMDAware(g_cqCommandQue, g_cxMainContext);
+		//	g_openCLSIMDSolver = new btOpenCLSoftBodySolver( g_cqCommandQue, g_cxMainContext);
+		g_openCLSIMDSolver->setCLFunctions(new CachingCLFunctions(g_cqCommandQue, g_cxMainContext));
+	}
+
+	softBodySolver = g_openCLSIMDSolver;
+	g_softBodyOutput = new btSoftBodySolverOutputCLtoCPU;
+#endif  //USE_AMD_OPENCL
+
+	btDiscreteDynamicsWorld* world = new btSoftRigidDynamicsWorld(m_dispatcher, m_broadphase, m_solver, m_collisionConfiguration, softBodySolver);
+	m_dynamicsWorld = world;
+	m_dynamicsWorld->setInternalTickCallback(tensegrityPickingPreTickCallback, this, true);
+
+	m_dynamicsWorld->getDispatchInfo().m_enableSPU = true;
+	m_dynamicsWorld->setGravity(btVector3(0, -10, 0));
+	m_softBodyWorldInfo.m_gravity.setValue(0, -10, 0);
+	// m_guiHelper->createPhysicsDebugDrawer(world);
+	//	clientResetScene();
+
+	m_softBodyWorldInfo.m_sparsesdf.Initialize();
+	//	clientResetScene();
+}
+
 void Tensegrity::initPhysics()
 {
 	m_guiHelper->setUpAxis(1);
 
-	createEmptyDynamicsWorld();
+	// createEmptyDynamicsWorld();
+	createEmptySoftRigidDynamicsWorld();
 	//m_dynamicsWorld->setGravity(btVector3(0,0,0));
 	m_guiHelper->createPhysicsDebugDrawer(m_dynamicsWorld);
 
@@ -131,6 +234,16 @@ void Tensegrity::initPhysics()
 		body->setFriction(0.0);
 
 		btRigidBody* cylFromTo = createCylinderByFromTo(btVector3(0, 5, 0), btVector3(0, 6, 1), btScalar(0.1));
+
+		//create a rope
+		btSoftBody* psb = btSoftBodyHelpers::CreateRope(m_softBodyWorldInfo, btVector3(-10, 3, 0.25),
+												btVector3(10, 3, 0.25),
+												16,
+												1 + 2);
+		psb->m_cfg.piterations = 4;
+		psb->m_materials[0]->m_kLST = 0.1 + 0.9;
+		psb->setTotalMass(20);
+		getSoftDynamicsWorld()->addSoftBody(psb);
 
 		
 		// body->setRollingFriction(0.03);
@@ -195,12 +308,67 @@ void Tensegrity::initPhysics()
 void Tensegrity::renderScene()
 {
 	CommonRigidBodyBase::renderScene();
+	btSoftRigidDynamicsWorld* softWorld = getSoftDynamicsWorld();
+
+	for (int i = 0; i < softWorld->getSoftBodyArray().size(); i++)
+	{
+		btSoftBody* psb = (btSoftBody*)softWorld->getSoftBodyArray()[i];
+		//if (softWorld->getDebugDrawer() && !(softWorld->getDebugDrawer()->getDebugMode() & (btIDebugDraw::DBG_DrawWireframe)))
+		{
+			btSoftBodyHelpers::DrawFrame(psb, softWorld->getDebugDrawer());
+			btSoftBodyHelpers::Draw(psb, softWorld->getDebugDrawer(), softWorld->getDrawFlags());
+		}
+	}
 }
 
 class CommonExampleInterface* TensegrityCreateFunc(CommonExampleOptions& options)
 {
 	// return new ImportMJCFSetup(options.m_guiHelper, options.m_option, options.m_fileName);
 	return new Tensegrity(options.m_guiHelper);
+}
+
+
+////////////////////////////////////
+///for mouse picking
+void tensegrityPickingPreTickCallback(btDynamicsWorld* world, btScalar timeStep)
+{
+	Tensegrity* tensegrity = (Tensegrity*)world->getWorldUserInfo();
+
+	if (tensegrity->m_drag)
+	{
+		const int x = tensegrity->m_lastmousepos[0];
+		const int y = tensegrity->m_lastmousepos[1];
+		float rf[3];
+		tensegrity->getGUIHelper()->getRenderInterface()->getActiveCamera()->getCameraPosition(rf);
+		float target[3];
+		tensegrity->getGUIHelper()->getRenderInterface()->getActiveCamera()->getCameraTargetPosition(target);
+		btVector3 cameraTargetPosition(target[0], target[1], target[2]);
+
+		const btVector3 cameraPosition(rf[0], rf[1], rf[2]);
+		const btVector3 rayFrom = cameraPosition;
+
+		const btVector3 rayTo = tensegrity->getRayTo(x, y);
+		const btVector3 rayDir = (rayTo - rayFrom).normalized();
+		const btVector3 N = (cameraTargetPosition - cameraPosition).normalized();
+		const btScalar O = btDot(tensegrity->m_impact, N);
+		const btScalar den = btDot(N, rayDir);
+		if ((den * den) > 0)
+		{
+			const btScalar num = O - btDot(N, rayFrom);
+			const btScalar hit = num / den;
+			if ((hit > 0) && (hit < 1500))
+			{
+				tensegrity->m_goal = rayFrom + rayDir * hit;
+			}
+		}
+		btVector3 delta = tensegrity->m_goal - tensegrity->m_node->m_x;
+		static const btScalar maxdrag = 10;
+		if (delta.length2() > (maxdrag * maxdrag))
+		{
+			delta = delta.normalized() * maxdrag;
+		}
+		tensegrity->m_node->m_v += delta / timeStep;
+	}
 }
 
 B3_STANDALONE_EXAMPLE(TensegrityCreateFunc)
