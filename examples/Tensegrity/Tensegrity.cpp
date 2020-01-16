@@ -221,11 +221,11 @@ void Tensegrity::initPhysics()
 		//create a few dynamic rigidbodies, i.e. boxes. Here reuse the collision shape
 		// Re-using the same collision is better for memory usage and performance
 
-		btCollisionShape* cylShape = new btCylinderShape(btVector3(0.25, 0.5, 0.25)); // radius, height, not used.
+		btCollisionShape* cylShape = new btCylinderShape(btVector3(0.25, 0.5, 0.25)); // radius, half_height, not used.
 		m_collisionShapes.push_back(cylShape);
 		btTransform startTransform;
 		startTransform.setIdentity();
-		startTransform.setOrigin(btVector3(btScalar(0), btScalar(1), btScalar(0)));
+		startTransform.setOrigin(btVector3(btScalar(0), btScalar(0.5), btScalar(0))); // center of mass.
 		btScalar mass(1.f);
 
 		btRigidBody* body = createRigidBody(mass, startTransform, cylShape);
@@ -233,7 +233,7 @@ void Tensegrity::initPhysics()
 		body->setSpinningFriction(0.0);
 		body->setFriction(0.0);
 
-		btRigidBody* cylFromTo = createCylinderByFromTo(btVector3(0, 5, 0), btVector3(0, 6, 1), btScalar(0.1));
+		btRigidBody* cylFromTo = createCylinderByFromTo(btVector3(2, 5, 0), btVector3(2, 6, 1), btScalar(0.1));
 
 		//create a rope
 		btSoftBody* psb = btSoftBodyHelpers::CreateRope(m_softBodyWorldInfo, btVector3(-10, 3, 0.25),
