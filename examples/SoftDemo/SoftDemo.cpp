@@ -521,7 +521,7 @@ static void Init_RopeAttach(SoftDemo* pdemo)
 	btRigidBody* body = pdemo->createRigidBody(50, startTransform, new btBoxShape(btVector3(2, 6, 2))); // box half shape. (12+-2, 8+-6, 0+-2)
 	btSoftBody* psb0 = Functors::CtorRope(pdemo, btVector3(0, 8, -1)); // from (0, 8, -1) to (10, 8, -1)
 	btSoftBody* psb1 = Functors::CtorRope(pdemo, btVector3(0, 8, +1)); // from (0, 8, 1) to (10, 8, 1)
-	psb0->appendAnchor(psb0->m_nodes.size() - 1, body);
+	psb0->appendAnchor(psb0->m_nodes.size() - 1, body); // anchor last node of rope to body.
 	psb1->appendAnchor(psb1->m_nodes.size() - 1, body);
 }
 

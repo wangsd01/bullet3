@@ -236,14 +236,16 @@ void Tensegrity::initPhysics()
 		btRigidBody* cylFromTo = createCylinderByFromTo(btVector3(2, 5, 0), btVector3(2, 6, 1), btScalar(0.1));
 
 		//create a rope
-		btSoftBody* psb = btSoftBodyHelpers::CreateRope(m_softBodyWorldInfo, btVector3(-10, 3, 0.25),
-												btVector3(10, 3, 0.25),
+		btSoftBody* psb = btSoftBodyHelpers::CreateRope(m_softBodyWorldInfo, btVector3(0, 8, -1),
+												btVector3(2, 5, 0),
 												16,
-												1 + 2);
+												1); // 1 means only anchor first end. 1+2 means anchor both ends.
 		psb->m_cfg.piterations = 4;
 		psb->m_materials[0]->m_kLST = 0.1 + 0.9;
 		psb->setTotalMass(20);
 		getSoftDynamicsWorld()->addSoftBody(psb);
+
+		psb->appendAnchor(psb->m_nodes.size() - 1, cylFromTo);
 
 		
 		// body->setRollingFriction(0.03);
@@ -332,43 +334,43 @@ class CommonExampleInterface* TensegrityCreateFunc(CommonExampleOptions& options
 ///for mouse picking
 void tensegrityPickingPreTickCallback(btDynamicsWorld* world, btScalar timeStep)
 {
-	Tensegrity* tensegrity = (Tensegrity*)world->getWorldUserInfo();
+	// Tensegrity* tensegrity = (Tensegrity*)world->getWorldUserInfo();
 
-	if (tensegrity->m_drag)
-	{
-		const int x = tensegrity->m_lastmousepos[0];
-		const int y = tensegrity->m_lastmousepos[1];
-		float rf[3];
-		tensegrity->getGUIHelper()->getRenderInterface()->getActiveCamera()->getCameraPosition(rf);
-		float target[3];
-		tensegrity->getGUIHelper()->getRenderInterface()->getActiveCamera()->getCameraTargetPosition(target);
-		btVector3 cameraTargetPosition(target[0], target[1], target[2]);
+	// if (tensegrity->m_drag)
+	// {
+	// 	const int x = tensegrity->m_lastmousepos[0];
+	// 	const int y = tensegrity->m_lastmousepos[1];
+	// 	float rf[3];
+	// 	tensegrity->getGUIHelper()->getRenderInterface()->getActiveCamera()->getCameraPosition(rf);
+	// 	float target[3];
+	// 	tensegrity->getGUIHelper()->getRenderInterface()->getActiveCamera()->getCameraTargetPosition(target);
+	// 	btVector3 cameraTargetPosition(target[0], target[1], target[2]);
 
-		const btVector3 cameraPosition(rf[0], rf[1], rf[2]);
-		const btVector3 rayFrom = cameraPosition;
+	// 	const btVector3 cameraPosition(rf[0], rf[1], rf[2]);
+	// 	const btVector3 rayFrom = cameraPosition;
 
-		const btVector3 rayTo = tensegrity->getRayTo(x, y);
-		const btVector3 rayDir = (rayTo - rayFrom).normalized();
-		const btVector3 N = (cameraTargetPosition - cameraPosition).normalized();
-		const btScalar O = btDot(tensegrity->m_impact, N);
-		const btScalar den = btDot(N, rayDir);
-		if ((den * den) > 0)
-		{
-			const btScalar num = O - btDot(N, rayFrom);
-			const btScalar hit = num / den;
-			if ((hit > 0) && (hit < 1500))
-			{
-				tensegrity->m_goal = rayFrom + rayDir * hit;
-			}
-		}
-		btVector3 delta = tensegrity->m_goal - tensegrity->m_node->m_x;
-		static const btScalar maxdrag = 10;
-		if (delta.length2() > (maxdrag * maxdrag))
-		{
-			delta = delta.normalized() * maxdrag;
-		}
-		tensegrity->m_node->m_v += delta / timeStep;
-	}
+	// 	const btVector3 rayTo = tensegrity->getRayTo(x, y);
+	// 	const btVector3 rayDir = (rayTo - rayFrom).normalized();
+	// 	const btVector3 N = (cameraTargetPosition - cameraPosition).normalized();
+	// 	const btScalar O = btDot(tensegrity->m_impact, N);
+	// 	const btScalar den = btDot(N, rayDir);
+	// 	if ((den * den) > 0)
+	// 	{
+	// 		const btScalar num = O - btDot(N, rayFrom);
+	// 		const btScalar hit = num / den;
+	// 		if ((hit > 0) && (hit < 1500))
+	// 		{
+	// 			tensegrity->m_goal = rayFrom + rayDir * hit;
+	// 		}
+	// 	}
+	// 	btVector3 delta = tensegrity->m_goal - tensegrity->m_node->m_x;
+	// 	static const btScalar maxdrag = 10;
+	// 	if (delta.length2() > (maxdrag * maxdrag))
+	// 	{
+	// 		delta = delta.normalized() * maxdrag;
+	// 	}
+	// 	tensegrity->m_node->m_v += delta / timeStep;
+	// }
 }
 
 B3_STANDALONE_EXAMPLE(TensegrityCreateFunc)

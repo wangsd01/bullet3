@@ -694,8 +694,8 @@ btSoftBody* btSoftBodyHelpers::CreateRope(btSoftBodyWorldInfo& worldInfo, const 
 {
 	/* Create nodes	*/
 	const int r = res + 2;
-	btVector3* x = new btVector3[r];
-	btScalar* m = new btScalar[r];
+	btVector3* x = new btVector3[r]; // position of each node
+	btScalar* m = new btScalar[r]; // mass of each node
 	int i;
 
 	for (i = 0; i < r; ++i)
