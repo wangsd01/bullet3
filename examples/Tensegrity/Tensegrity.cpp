@@ -222,23 +222,40 @@ void Tensegrity::initPhysics()
 		//create a few dynamic rigidbodies, i.e. boxes. Here reuse the collision shape
 		// Re-using the same collision is better for memory usage and performance
 
-		btCollisionShape* cylShape = new btCylinderShape(btVector3(0.25, 0.5, 0.25)); // radius, half_height, not used.
-		m_collisionShapes.push_back(cylShape);
+		btCollisionShape* cylShape = new btCylinderShape(btVector3(0.5, 0.5, 0.25)); // radius, half_height, not used.
+		btCollisionShape* sphere1 = new btSphereShape(0.1);
+		btCompoundShape* cyl0 = new btCompoundShape();
+			
 		btTransform startTransform;
 		startTransform.setIdentity();
-		startTransform.setOrigin(btVector3(btScalar(0), btScalar(0.5), btScalar(0))); // center of mass.
-		btScalar mass(1.f);
+		startTransform.setOrigin(btVector3(0.5, 0.5, 0));
+		cyl0->addChildShape(btTransform::getIdentity(), cylShape);
+		cyl0->addChildShape(startTransform, sphere1);
 
-		btRigidBody* body = createRigidBody(mass, startTransform, cylShape);
-		body->setRollingFriction(0.0);
-		body->setSpinningFriction(0.0);
-		body->setFriction(0.0);
+		btScalar mass = 6.28;
+		btVector3 localInertia;
+		cyl0->calculateLocalInertia(mass, localInertia);
+		btRigidBody::btRigidBodyConstructionInfo ci(mass, 0, cyl0, localInertia);
+		ci.m_startWorldTransform.setOrigin(btVector3(0, 5, 0));
+		btRigidBody* body = new btRigidBody(ci);  //1,0,cyl0,localInertia);
+		m_dynamicsWorld->addRigidBody(body);
 
-		btRigidBody* cylFromTo = createCylinderByFromTo(btVector3(2, 5, 0), btVector3(2, 6, 1), btScalar(0.1));
+		// m_collisionShapes.push_back(cylShape);
+		// btTransform startTransform;
+		// startTransform.setIdentity();
+		// startTransform.setOrigin(btVector3(btScalar(0), btScalar(0.5), btScalar(0))); // center of mass.
+		// btScalar mass(1.f);
+		// btRigidBody* body = createRigidBody(mass, startTransform, cylShape);
+		// body->setRollingFriction(0.0);
+		// body->setSpinningFriction(0.0);
+		// body->setFriction(0.0);
+
+		// btRigidBody* cylFromTo = createCylinderByFromTo(btVector3(2, 5, 1), btVector3(2, 6, 1), btScalar(0.5));
+
 
 		//create a rope
 		btSoftBody* psb = btSoftBodyHelpers::CreateRope(m_softBodyWorldInfo, btVector3(0, 8, -1),
-												btVector3(2, 5, 0),
+												btVector3(0.5, 5.5, 0),
 												0,
 												1); // 1 means only anchor first end. 1+2 means anchor both ends.
 		psb->m_cfg.piterations = 4;
@@ -246,7 +263,7 @@ void Tensegrity::initPhysics()
 		psb->setTotalMass(1.);
 		getSoftDynamicsWorld()->addSoftBody(psb);
 
-		psb->appendAnchor(psb->m_nodes.size() - 1, cylFromTo);
+		psb->appendAnchor(psb->m_nodes.size() - 1, body);
 
 		
 		// body->setRollingFriction(0.03);

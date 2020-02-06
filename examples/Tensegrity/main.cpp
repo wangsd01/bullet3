@@ -33,6 +33,8 @@ int main(int argc, char* argv[])
 
 	example->initPhysics();
 	example->stepSimulation(1.f / 60.f);
+
+	// state = example.get_simulation_states()
 	example->exitPhysics();
 
 	delete example;
