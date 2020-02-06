@@ -106,6 +106,7 @@ btRigidBody* Tensegrity::createCylinderByFromTo(btVector3 cylinderFrom, btVector
 		localOrn = shortestArcQuat(zAxis, ax);
 	}
 	btCylinderShapeZ* cylShape = new btCylinderShapeZ(btVector3(cylinderRadius, cylinderRadius, btScalar(0.5) * height));
+	m_collisionShapes.push_back(cylShape);
 
 	btTransform localTransform(localOrn, localPosition);
 	btRigidBody* body = createRigidBody(mass, localTransform, cylShape);
@@ -238,11 +239,11 @@ void Tensegrity::initPhysics()
 		//create a rope
 		btSoftBody* psb = btSoftBodyHelpers::CreateRope(m_softBodyWorldInfo, btVector3(0, 8, -1),
 												btVector3(2, 5, 0),
-												16,
+												0,
 												1); // 1 means only anchor first end. 1+2 means anchor both ends.
 		psb->m_cfg.piterations = 4;
 		psb->m_materials[0]->m_kLST = 0.1 + 0.9;
-		psb->setTotalMass(20);
+		psb->setTotalMass(1.);
 		getSoftDynamicsWorld()->addSoftBody(psb);
 
 		psb->appendAnchor(psb->m_nodes.size() - 1, cylFromTo);
