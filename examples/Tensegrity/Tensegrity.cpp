@@ -26,6 +26,7 @@ subject to the following restrictions:
 #include "../CommonInterfaces/CommonRigidBodyBase.h"
 #include "../Importers/ImportMJCFDemo/ImportMJCFSetup.h"
 
+#include "BulletSoftBody/btSoftBody.h"
 #include "BulletSoftBody/btSoftBodyHelpers.h"
 #include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
 #include "BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h"
@@ -44,6 +45,7 @@ struct Tensegrity : public CommonRigidBodyBase
 	virtual void initPhysics();
 	virtual void renderScene();
 	btRigidBody* createCylinderByFromTo(btVector3 cylinderFrom, btVector3 cylinderTo, btScalar cylinderRadius);
+	void evaluateEquations();
 	void createEmptySoftRigidDynamicsWorld();
 	btSoftBodyWorldInfo m_softBodyWorldInfo;
 
@@ -187,6 +189,29 @@ void Tensegrity::createEmptySoftRigidDynamicsWorld()
 
 	m_softBodyWorldInfo.m_sparsesdf.Initialize();
 	//	clientResetScene();
+}
+
+void Tensegrity::evaluateEquations()
+{
+	btScalar bodyUniqueId(0);
+	btAlignedObjectArray<btRigidBody*>& rbs = m_dynamicsWorld->getNonStaticRigidBodies();
+	btRigidBody* rb = rbs[0];
+	btTransform tr = rb->getWorldTransform();
+	btVector3 position = tr.getOrigin();
+	btQuaternion quat = tr.getRotation();
+	btVector3 lin_vel = rb->getLinearVelocity();
+	btVector3 ang_vel = rb->getAngularVelocity();
+
+	btVector3 force = rb->getTotalForce();
+	btVector3 torque = rb->getTotalTorque();
+
+
+	btAlignedObjectArray<btSoftBody*>& sbs = getSoftDynamicsWorld()->getSoftBodyArray();
+	btSoftBody* sb = sbs[0];
+
+	btSoftBody::Anchor& a = sb->m_anchors[0];
+	const btVector3 wa = a.m_body->getWorldTransform() * a.m_local;
+	
 }
 
 void Tensegrity::initPhysics()
