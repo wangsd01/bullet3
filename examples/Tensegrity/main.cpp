@@ -32,8 +32,11 @@ int main(int argc, char* argv[])
 	CommonExampleInterface* example = TensegrityCreateFunc(options);
 
 	example->initPhysics();
-	example->stepSimulation(1.f / 60.f);
-	example->evaluateEquations();
+	for(uint i = 0; i < 1000; i++) {
+		printf("t = %d\n", i);
+		example->stepSimulation(1.f / 60.f);
+		example->evaluateEquations();
+	}
 	// state = example.get_simulation_states()
 	example->exitPhysics();
 

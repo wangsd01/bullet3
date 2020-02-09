@@ -61,6 +61,10 @@ struct Tensegrity : public CommonRigidBodyBase
 	btVector3 m_goal;
 	bool m_drag;
 
+	btVector3 m_last_rod_lin_vel;
+	btVector3 m_last_rod_ang_vel;
+	bool m_first_t = true;
+
 	void resetCamera()
 	{
 		float dist = 4;
@@ -204,14 +208,44 @@ void Tensegrity::evaluateEquations()
 
 	btVector3 force = rb->getTotalForce();
 	btVector3 torque = rb->getTotalTorque();
+	printf("total force is %f %f %f\n", force[0], force[1], force[2]);
 
 
 	btAlignedObjectArray<btSoftBody*>& sbs = getSoftDynamicsWorld()->getSoftBodyArray();
 	btSoftBody* sb = sbs[0];
 
 	btSoftBody::Anchor& a = sb->m_anchors[0];
-	const btVector3 wa = a.m_body->getWorldTransform() * a.m_local;
+	const btVector3 a_w_pos = a.m_body->getWorldTransform() * a.m_local;
 	
+	btVector3 torque_arm = a_w_pos - position;
+	btVector3 computed_torque = torque_arm.cross(force);
+	btVector3 torque_diff = computed_torque - torque;
+	printf("torque_diff is %f %f %f\n", torque_diff[0], torque_diff[1], torque_diff[2]);
+
+	if (!m_first_t) {
+		// btVector3 lin_acc = force * rb->getInvMass();
+		btVector3 computed_lin_acc = (lin_vel - m_last_rod_lin_vel) / (1.f / 60.f);
+
+		// btVector3 ang_acc = rb->getInvInertiaTensorWorld() * torque;
+		btVector3 computed_ang_acc = (ang_vel - m_last_rod_ang_vel) / (1.f / 60.f);
+
+		// btVector3 lin_acc_diff = lin_acc - computed_lin_acc;
+		// printf("lin_acc_diff is %f %f %f\n", lin_acc_diff[0], lin_acc_diff[1], lin_acc_diff[2]);
+
+		btVector3 computed_spring_force = (computed_lin_acc - rb->getGravity()) * rb->getMass();
+		btVector3 computed_torque = torque_arm.cross(computed_spring_force);
+		btVector3 ang_acc = rb->getInvInertiaTensorWorld() * computed_torque;
+		btVector3 ang_acc_diff = ang_acc - computed_ang_acc;
+		printf("ang_acc is %f %f %f\n", ang_acc[0], ang_acc[1], ang_acc[2]);
+		printf("computed_ang_acc is %f %f %f\n", computed_ang_acc[0], computed_ang_acc[1], computed_ang_acc[2]);
+		printf("ang_acc_diff is %f %f %f\n", ang_acc_diff[0], ang_acc_diff[1], ang_acc_diff[2]);
+	} 
+	else {
+		m_first_t = false;
+	}
+	m_last_rod_lin_vel = lin_vel;
+	m_last_rod_ang_vel = ang_vel;
+
 }
 
 void Tensegrity::initPhysics()
@@ -248,14 +282,14 @@ void Tensegrity::initPhysics()
 		// Re-using the same collision is better for memory usage and performance
 
 		btCollisionShape* cylShape = new btCylinderShape(btVector3(0.5, 0.5, 0.25)); // radius, half_height, not used.
-		btCollisionShape* sphere1 = new btSphereShape(0.1);
+		// btCollisionShape* sphere1 = new btSphereShape(0.1);
 		btCompoundShape* cyl0 = new btCompoundShape();
 			
 		btTransform startTransform;
 		startTransform.setIdentity();
 		startTransform.setOrigin(btVector3(0.5, 0.5, 0));
 		cyl0->addChildShape(btTransform::getIdentity(), cylShape);
-		cyl0->addChildShape(startTransform, sphere1);
+		// cyl0->addChildShape(startTransform, sphere1);
 
 		btScalar mass = 6.28;
 		btVector3 localInertia;
