@@ -87,7 +87,7 @@ void btCylinderShape::calculateLocalInertia(btScalar mass, btVector3& inertia) c
 	height2 = btScalar(4.) * halfExtents[idxHeight] * halfExtents[idxHeight];
 
 	// calculate tensor terms
-	btScalar t1 = div12 * height2 + div4 * radius2;
+	btScalar t1 = div12 * height2 + div4 * radius2; // h^2 / 12 + r^2 / 4
 	btScalar t2 = div2 * radius2;
 
 	switch (m_upAxis)  // set diagonal elements of inertia tensor

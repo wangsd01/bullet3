@@ -208,7 +208,7 @@ void Tensegrity::evaluateEquations()
 
 	btVector3 force = rb->getTotalForce();
 	btVector3 torque = rb->getTotalTorque();
-	printf("total force is %f %f %f\n", force[0], force[1], force[2]);
+	// printf("total force is %f %f %f\n", force[0], force[1], force[2]);
 
 
 	btAlignedObjectArray<btSoftBody*>& sbs = getSoftDynamicsWorld()->getSoftBodyArray();
@@ -220,7 +220,7 @@ void Tensegrity::evaluateEquations()
 	btVector3 torque_arm = a_w_pos - position;
 	btVector3 computed_torque = torque_arm.cross(force);
 	btVector3 torque_diff = computed_torque - torque;
-	printf("torque_diff is %f %f %f\n", torque_diff[0], torque_diff[1], torque_diff[2]);
+	// printf("torque_diff is %f %f %f\n", torque_diff[0], torque_diff[1], torque_diff[2]);
 
 	if (!m_first_t) {
 		// btVector3 lin_acc = force * rb->getInvMass();
@@ -281,7 +281,7 @@ void Tensegrity::initPhysics()
 		//create a few dynamic rigidbodies, i.e. boxes. Here reuse the collision shape
 		// Re-using the same collision is better for memory usage and performance
 
-		btCollisionShape* cylShape = new btCylinderShape(btVector3(0.5, 0.5, 0.25)); // radius, half_height, not used.
+		btCollisionShape* cylShape = new btCylinderShape(btVector3(0.5, 0.4, 0.05)); // radius, half_height, not used.
 		// btCollisionShape* sphere1 = new btSphereShape(0.1);
 		btCompoundShape* cyl0 = new btCompoundShape();
 			
@@ -293,7 +293,8 @@ void Tensegrity::initPhysics()
 
 		btScalar mass = 6.28;
 		btVector3 localInertia;
-		cyl0->calculateLocalInertia(mass, localInertia);
+		cylShape->calculateLocalInertia(mass, localInertia);
+		// cyl0->calculateLocalInertia(mass, localInertia);
 		btRigidBody::btRigidBodyConstructionInfo ci(mass, 0, cyl0, localInertia);
 		ci.m_startWorldTransform.setOrigin(btVector3(0, 5, 0));
 		btRigidBody* body = new btRigidBody(ci);  //1,0,cyl0,localInertia);
@@ -314,7 +315,7 @@ void Tensegrity::initPhysics()
 
 		//create a rope
 		btSoftBody* psb = btSoftBodyHelpers::CreateRope(m_softBodyWorldInfo, btVector3(0, 8, -1),
-												btVector3(0.5, 5.5, 0),
+												btVector3(0.5, 5.4, 0),
 												0,
 												1); // 1 means only anchor first end. 1+2 means anchor both ends.
 		psb->m_cfg.piterations = 4;
@@ -322,7 +323,7 @@ void Tensegrity::initPhysics()
 		psb->setTotalMass(1.);
 		getSoftDynamicsWorld()->addSoftBody(psb);
 
-		psb->appendAnchor(psb->m_nodes.size() - 1, body);
+		psb->appendAnchor(psb->m_nodes.size() - 1, body, true, 1.0f);
 
 		
 		// body->setRollingFriction(0.03);

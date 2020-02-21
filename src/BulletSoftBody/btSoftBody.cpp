@@ -621,7 +621,7 @@ void btSoftBody::addAeroForceToNode(const btVector3& windVelocity, int nodeIndex
 					fDrag = 0.5f * kDG * medium.m_density * rel_v2 * tri_area * n_dot_v * (-rel_v_nrm);
 
 					// Check angle of attack
-					// cos(10º) = 0.98480
+					// cos(10ï¿½) = 0.98480
 					if (0 < n_dot_v && n_dot_v < 0.98480f)
 						fLift = 0.5f * kLF * medium.m_density * rel_v_len * tri_area * btSqrt(1.0f - n_dot_v * n_dot_v) * (nrm.cross(rel_v_nrm).cross(rel_v_nrm));
 
@@ -707,7 +707,7 @@ void btSoftBody::addAeroForceToFace(const btVector3& windVelocity, int faceIndex
 				fDrag = 0.5f * kDG * medium.m_density * rel_v2 * tri_area * n_dot_v * (-rel_v_nrm);
 
 				// Check angle of attack
-				// cos(10º) = 0.98480
+				// cos(10ï¿½) = 0.98480
 				if (0 < n_dot_v && n_dot_v < 0.98480f)
 					fLift = 0.5f * kLF * medium.m_density * rel_v_len * tri_area * btSqrt(1.0f - n_dot_v * n_dot_v) * (nrm.cross(rel_v_nrm).cross(rel_v_nrm));
 
@@ -3418,19 +3418,19 @@ void btSoftBody::setCollisionQuadrature(int N)
 void btSoftBody::PSolve_Anchors(btSoftBody* psb, btScalar kst, btScalar ti)
 {
 	BT_PROFILE("PSolve_Anchors");
-	const btScalar kAHR = psb->m_cfg.kAHR * kst;
+	const btScalar kAHR = psb->m_cfg.kAHR * kst; // kAHR, anchor hardness [0,1]
 	const btScalar dt = psb->m_sst.sdt;
 	for (int i = 0, ni = psb->m_anchors.size(); i < ni; ++i)
 	{
 		const Anchor& a = psb->m_anchors[i];
 		const btTransform& t = a.m_body->getWorldTransform();
 		Node& n = *a.m_node;
-		const btVector3 wa = t * a.m_local;
-		const btVector3 va = a.m_body->getVelocityInLocalPoint(a.m_c1) * dt;
-		const btVector3 vb = n.m_x - n.m_q;
-		const btVector3 vr = (va - vb) + (wa - n.m_x) * kAHR;
+		const btVector3 wa = t * a.m_local; // anchor world position
+		const btVector3 va = a.m_body->getVelocityInLocalPoint(a.m_c1) * dt; // anchor world velocity
+		const btVector3 vb = n.m_x - n.m_q; // anchor node velocity
+		const btVector3 vr = (va - vb) + (wa - n.m_x) * kAHR; // relative velocity and position.
 		const btVector3 impulse = a.m_c0 * vr * a.m_influence;
-		n.m_x += impulse * a.m_c2;
+		n.m_x += impulse * a.m_c2; // f * 1/m * dt
 		a.m_body->applyImpulse(-impulse, a.m_c1);
 	}
 }
@@ -3558,11 +3558,11 @@ void btSoftBody::PSolve_Links(btSoftBody* psb, btScalar kst, btScalar ti)
 			Node& b = *l.m_n[1];
 			const btVector3 del = b.m_x - a.m_x;
 			const btScalar len = del.length2();
-			if (l.m_c1 + len > SIMD_EPSILON)
+			if (l.m_c1 + len > SIMD_EPSILON) // rl^2 + del^2 > epsilon
 			{
 				const btScalar k = ((l.m_c1 - len) / (l.m_c0 * (l.m_c1 + len))) * kst;
 				a.m_x -= del * (k * a.m_im);
-				b.m_x += del * (k * b.m_im);
+				b.m_x += del * (k * b.m_im); // del * k / m
 			}
 		}
 	}
@@ -3577,7 +3577,7 @@ void btSoftBody::VSolve_Links(btSoftBody* psb, btScalar kst)
 		Link& l = psb->m_links[i];
 		Node** n = l.m_n;
 		const btScalar j = -btDot(l.m_c3, n[0]->m_v - n[1]->m_v) * l.m_c2 * kst;
-		n[0]->m_v += l.m_c3 * (j * n[0]->m_im);
+		n[0]->m_v += l.m_c3 * (j * n[0]->m_im); // 
 		n[1]->m_v -= l.m_c3 * (j * n[1]->m_im);
 	}
 }
