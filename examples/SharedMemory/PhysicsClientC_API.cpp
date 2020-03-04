@@ -771,6 +771,15 @@ B3_SHARED_API int b3PhysicsParamSetNumSolverIterations(b3SharedMemoryCommandHand
 	return 0;
 }
 
+B3_SHARED_API int b3PhysicsParamSetNumNonContactInnerIterations(b3SharedMemoryCommandHandle commandHandle, int numNonContactInnerIterations)
+{
+    struct SharedMemoryCommand* command = (struct SharedMemoryCommand*)commandHandle;
+    b3Assert(command->m_type == CMD_SEND_PHYSICS_SIMULATION_PARAMETERS);
+    command->m_physSimParamArgs.m_numNonContactInnerIterations = numNonContactInnerIterations;
+	command->m_updateFlags |= SIM_PARAM_UPDATE_NUM_NONCONTACT_INNER_ITERATIONS;
+    return 0;
+}
+
 B3_SHARED_API int b3PhysicsParamSetWarmStartingFactor(b3SharedMemoryCommandHandle commandHandle, double warmStartingFactor)
 {
 	struct SharedMemoryCommand* command = (struct SharedMemoryCommand*)commandHandle;
@@ -1438,6 +1447,7 @@ B3_SHARED_API int b3CreateCollisionShapeAddCapsule(b3SharedMemoryCommandHandle c
 			command->m_createUserShapeArgs.m_shapes[shapeIndex].m_collisionFlags = 0;
 			command->m_createUserShapeArgs.m_shapes[shapeIndex].m_visualFlags = 0;
 			command->m_createUserShapeArgs.m_shapes[shapeIndex].m_hasChildTransform = 0;
+			command->m_createUserShapeArgs.m_shapes[shapeIndex].m_hasFromTo = 0;
 			command->m_createUserShapeArgs.m_shapes[shapeIndex].m_capsuleRadius = radius;
 			command->m_createUserShapeArgs.m_shapes[shapeIndex].m_capsuleHeight = height;
 			command->m_createUserShapeArgs.m_numUserShapes++;
